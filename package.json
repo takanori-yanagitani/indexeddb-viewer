@@ -1,6 +1,6 @@
 {
   "name": "indexeddb-viewer",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -10,7 +10,10 @@
   "license": "ISC",
   "description": "indexedDB Viewer for specified IDBDatabase.",
   "keywords": [
-    "indexeddb"
+    "indexeddb",
+    "ie11",
+    "internetexplorer",
+    "internet-explorer"
   ],
   "repository": {
     "type": "git",
