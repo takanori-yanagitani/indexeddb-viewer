@@ -1,6 +1,6 @@
 {
   "name": "indexeddb-viewer",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -8,5 +8,12 @@
   "keywords": [],
   "author": "takanori <yanagitani.adin@gmail.com>",
   "license": "ISC",
-  "description": "indexedDB Viewer for specified IDBDatabase."
+  "description": "indexedDB Viewer for specified IDBDatabase.",
+  "keywords": [
+    "indexeddb"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/takanori-yanagitani/indexeddb-viewer"
+  }
 }
