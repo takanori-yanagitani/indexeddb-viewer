@@ -1,7 +1,7 @@
 (function(IndexedDBViewer){
 
 ReactDOM.render(
-  React.createElement("div", {}, "IndexedDBViewer: " + typeof IndexedDBViewer),
+  React.createElement(IndexedDBViewer, { dbname: "browser" }),
   document.getElementById("react")
 );
 
