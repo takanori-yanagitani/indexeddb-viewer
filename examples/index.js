@@ -1,9 +1,9 @@
 (function(IndexedDBViewer){
 
-const dbname = "browser";
+const dbname = "log";
 
 (function(onOpen, onUpgrade){
-  const request = indexedDB.open(dbname, 18100500);
+  const request = indexedDB.open(dbname, 0x120a050);
   request.onsuccess = onOpen;
   request.onerror   = onOpen;
   request.onupgradeneeded = onUpgrade;
@@ -11,34 +11,27 @@ const dbname = "browser";
   const target = (event || {}).target || {};
   const result = target.result || {};
   const transaction = result.transaction([
-    "ie11",
-    "chrome",
-    "firefox",
-    "safari",
-    "opera",
+    "info",
+    "warning",
+    "error",
   ], "readwrite");
-  transaction.objectStore("ie11"   ).put({version: "11.0.85",      release: "2018-09-11"});
-  transaction.objectStore("chrome" ).put({version: "69.0.3497.92", release: "2018-09-17"});
-  transaction.objectStore("firefox").put({version: "62.0.3",       release: "2018-10-02"});
-  transaction.objectStore("safari" ).put({version: "12.0",         release: "2018-09-17"});
-  transaction.objectStore("opera"  ).put({version: "56.0.3051.36", release: "2018-10-02"});
+  transaction.objectStore("info"   ).put({timestamp: Date.now(), jsdate: new Date(), iso: new Date().toISOString(), message: "populating sample message..."});
+  transaction.objectStore("warning").put({timestamp: Date.now(), jsdate: new Date(), iso: new Date().toISOString(), message: "populating sample message..."});
+  transaction.objectStore("error"  ).put({timestamp: Date.now(), jsdate: new Date(), iso: new Date().toISOString(), message: "populating sample message..."});
 }, function(versionChange){
   const target = (versionChange || {}).target || {};
   const transaction = target.transaction || {};
   const result = target.result || {};
   const objectStoreNames = result.objectStoreNames;
   [
-    "ie11",
-    "chrome",
-    "firefox",
-    "opera",
-    "safari",
-  ].forEach(function(browserName){
-    const exists = objectStoreNames.contains(browserName);
-    const store = exists ? transaction.objectStore(browserName) : result.createObjectStore(browserName, { keyPath: "version" });
+    "info",
+    "warning",
+    "error",
+  ].forEach(function(logType){
+    const exists = objectStoreNames.contains(logType);
+    const store = exists ? transaction.objectStore(logType) : result.createObjectStore(logType, { keyPath: "timestamp" });
     const indexNames = store.indexNames;
-    const vIndex = indexNames.contains("version") ? store.index("version") : store.createIndex("version", "version", { unique: true });
-    const rIndex = indexNames.contains("release") ? store.index("release") : store.createIndex("release", "release", { unique: true });
+    const pki = indexNames.contains("timestamp") ? store.index("timestamp") : store.createIndex("timestamp", "timestamp", { unique: true });
   });
 });
 
