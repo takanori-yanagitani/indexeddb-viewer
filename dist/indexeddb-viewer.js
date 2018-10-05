@@ -1,4 +1,4 @@
-(function(w, r, rd, crc){
+(function(w, r, rd, crc, rb){
 
 const dsl2array = function(domStringList){
   const ret = [];
@@ -6,6 +6,47 @@ const dsl2array = function(domStringList){
   for(let i = 0; i < length; i++) ret.push(domStringList.item(i));
   return ret;
 };
+
+const Panel = rb.Panel;
+
+const IDBObjectStoreViewer = crc({
+  componentDidMount(){
+    const dbname = this.props.dbname;
+    const storeName = this.props.storeName;
+    const me = this;
+    (function(onOpen){
+      const request = indexedDB.open(dbname);
+      request.onsuccess = onOpen;
+      request.onerror   = onOpen;
+    })(function(event){
+      const target = (event || {}).target;
+      const result = target.result || {};
+      const store = result.transaction(storeName, "readonly").objectStore(storeName);
+      const indexNames = store.indexNames;
+      me.setState({indexNames: indexNames});
+    });
+  },
+
+  render: function(){
+    const storeName = this.props.storeName;
+    const indexNames = (this.state || {}).indexNames;
+    const indexNameArray = dsl2array(indexNames) || [];
+    return r.createElement(
+      Panel,
+      { defaultExpanded: false },
+      [
+        r.createElement(Panel.Heading, { key: 0 }, r.createElement(
+          Panel.Title, { toggle: true }, storeName
+        )),
+        r.createElement(Panel.Collapse, { key: 1 }, r.createElement(
+          Panel.Body, {}, indexNameArray.map(function(indexName){
+            return r.createElement("div", {}, "indexName: " + indexName);
+          })
+        )),
+      ]
+    );
+  },
+});
 
 w.IndexedDBViewer = crc({
   componentDidMount: function(){
@@ -40,7 +81,7 @@ w.IndexedDBViewer = crc({
         r.createElement(
           "div", {}, storeNames.map(function(storeName, key){
             return r.createElement(
-              "div", { key: key }, storeName
+              IDBObjectStoreViewer, { storeName: storeName, key: key, dbname: dbname }
             );
           })
         ),
@@ -49,4 +90,4 @@ w.IndexedDBViewer = crc({
   },
 });
 
-})(window, window.React, window.ReactDOM, window.createReactClass);
+})(window, window.React, window.ReactDOM, window.createReactClass, window.ReactBootstrap);
