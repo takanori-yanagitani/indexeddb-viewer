@@ -1,4 +1,4 @@
-(function(w, r, rd, crc, rb, rbt2p, rbt2){
+(function(w, r, rd, crc, rb){
 
 const dsl2array = function(domStringList){
   const ret = [];
@@ -17,9 +17,6 @@ const Pager         = rb.Pager;
 const Pagination    = rb.Pagination;
 const ListGroup     = rb.ListGroup;
 const ListGroupItem = rb.ListGroupItem;
-
-const reactBootstrapTable2PageFatory = rbt2p;
-const BootstrapTable = rbt2;
 
 const Select2 = crc({
   render: function(){
@@ -238,4 +235,4 @@ w.IndexedDBViewer = crc({
   },
 });
 
-})(window, window.React, window.ReactDOM, window.createReactClass, window.ReactBootstrap, window.ReactBootstrapTable2Paginator, window.ReactBootstrapTable2);
+})(window, window.React, window.ReactDOM, window.createReactClass, window.ReactBootstrap);
