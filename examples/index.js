@@ -3,7 +3,7 @@
 const dbname = "browser";
 
 (function(onOpen, onUpgrade){
-  const request = indexedDB.open(dbname, 1810050848);
+  const request = indexedDB.open(dbname, 18100500);
   request.onsuccess = onOpen;
   request.onerror   = onOpen;
   request.onupgradeneeded = onUpgrade;
