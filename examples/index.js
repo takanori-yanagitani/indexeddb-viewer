@@ -33,7 +33,7 @@ const dbname = "browser";
     "firefox",
     "opera",
     "safari",
-  ].forEach(browserName => {
+  ].forEach(function(browserName){
     const exists = objectStoreNames.contains(browserName);
     const store = exists ? transaction.objectStore(browserName) : result.createObjectStore(browserName, { keyPath: "version" });
     const indexNames = store.indexNames;
