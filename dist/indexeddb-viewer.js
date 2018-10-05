@@ -83,7 +83,7 @@ const IDBObjectStoreViewer = crc({
     const selectedIndex = (this.state || {}).selectedIndex || indexNameArray[0] || "";
 
     const me = this;
-    const onIndexSelect = value => me.setState({selectedIndex: value});
+    const onIndexSelect = function(value){ me.setState({selectedIndex: value}); };
     return r.createElement(Col, { xs: 12 }, r.createElement(
       Panel,
       { defaultExpanded: false },
