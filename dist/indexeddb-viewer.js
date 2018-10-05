@@ -7,7 +7,53 @@ const dsl2array = function(domStringList){
   return ret;
 };
 
-const Panel = rb.Panel;
+const Panel        = rb.Panel;
+const Grid         = rb.Grid;
+const Row          = rb.Row;
+const Col          = rb.Col;
+const FormGroup    = rb.FormGroup;
+const ControlLabel = rb.ControlLabel;
+
+const Select2 = crc({
+  render: function(){
+    const data = this.props.data;
+    const onSelect = this.props.onSelect;
+    const ref = function(e){
+      if(!e) return;
+      const select = $(e);
+      select.select2({
+        width: "100%",
+        data: data.map(function(text){
+          return {
+            id: text,
+            text: text,
+          };
+        }),
+      });
+      select.on("select2:select", function(e){
+        const target = (e || {}).target;
+        const value = target.value || "";
+        onSelect(value);
+      });
+    };
+    return r.createElement(Row, {}, r.createElement(Col, { xs: 12 }, r.createElement("select", { ref: ref })));
+  },
+});
+
+const IDBObjectStoreForm = crc({
+  render: function(){
+    const indexNameArray = this.props.indexNameArray;
+    const onIndexSelect  = this.props.onIndexSelect;
+    return r.createElement(
+      "form", {}, r.createElement(
+        FormGroup, {}, [
+          r.createElement(ControlLabel, { key: 0 }, "Select Index"),
+          r.createElement(Select2,      { key: 1, data: indexNameArray, onSelect: onIndexSelect }),
+        ]
+      )
+    );
+  },
+});
 
 const IDBObjectStoreViewer = crc({
   componentDidMount: function(){
@@ -29,9 +75,16 @@ const IDBObjectStoreViewer = crc({
 
   render: function(){
     const storeName = this.props.storeName;
-    const indexNames = (this.state || {}).indexNames;
+
+    const indexNames    = (this.state || {}).indexNames;
+
     const indexNameArray = dsl2array(indexNames) || [];
-    return r.createElement(
+
+    const selectedIndex = (this.state || {}).selectedIndex || indexNameArray[0] || "";
+
+    const me = this;
+    const onIndexSelect = value => me.setState({selectedIndex: value});
+    return r.createElement(Col, { xs: 12 }, r.createElement(
       Panel,
       { defaultExpanded: false },
       [
@@ -39,12 +92,16 @@ const IDBObjectStoreViewer = crc({
           Panel.Title, { toggle: true }, storeName
         )),
         r.createElement(Panel.Collapse, { key: 1 }, r.createElement(
-          Panel.Body, {}, indexNameArray.map(function(indexName){
-            return r.createElement("div", {}, "indexName: " + indexName);
-          })
+          Panel.Body, {}, r.createElement(
+            IDBObjectStoreForm,
+            {
+              indexNameArray: indexNameArray,
+              onIndexSelect:  onIndexSelect,
+            }
+          )
         )),
       ]
-    );
+    ));
   },
 });
 
@@ -73,10 +130,10 @@ w.IndexedDBViewer = crc({
     const props = this.props || {};
     const dbname = props.dbname || "";
     return r.createElement(
-      "div", {}, [
+      Grid, {}, [
         r.createElement("h1", {}, dbname),
         r.createElement(
-          "div", {}, storeNames.map(function(storeName, key){
+          "Row", {}, storeNames.map(function(storeName, key){
             return r.createElement(
               IDBObjectStoreViewer, { storeName: storeName, key: key, dbname: dbname }
             );
