@@ -70,9 +70,6 @@ w.IndexedDBViewer = crc({
 
   render: function(){
     const storeNames = (this.state || {}).storeNames || [];
-    console.log({
-      IndexedDBViewer: "rendering...",
-    });
     const props = this.props || {};
     const dbname = props.dbname || "";
     return r.createElement(
