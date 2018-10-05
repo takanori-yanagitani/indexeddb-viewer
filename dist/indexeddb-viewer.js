@@ -42,7 +42,7 @@ w.IndexedDBViewer = crc({
             return r.createElement(
               "div", { key: key }, storeName
             );
-          }),
+          })
         ),
       ]
     );
