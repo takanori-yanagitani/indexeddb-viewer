@@ -10,7 +10,7 @@ const dsl2array = function(domStringList){
 const Panel = rb.Panel;
 
 const IDBObjectStoreViewer = crc({
-  componentDidMount(){
+  componentDidMount: function(){
     const dbname = this.props.dbname;
     const storeName = this.props.storeName;
     const me = this;
