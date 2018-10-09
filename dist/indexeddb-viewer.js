@@ -12,7 +12,9 @@ const Grid          = rb.Grid;
 const Row           = rb.Row;
 const Col           = rb.Col;
 const FormGroup     = rb.FormGroup;
+const FormControl   = rb.FormControl;
 const ControlLabel  = rb.ControlLabel;
+const Button        = rb.Button;
 const Pager         = rb.Pager;
 const Pagination    = rb.Pagination;
 const ListGroup     = rb.ListGroup;
@@ -46,15 +48,45 @@ const Select2 = crc({
 
 const IDBObjectStoreForm = crc({
   render: function(){
+    const me = this;
+
     const indexNameArray = this.props.indexNameArray;
     const onIndexSelect  = this.props.onIndexSelect;
+    const firstData      = this.props.firstData;
+    const selectedIndex  = this.props.selectedIndex;
+    const onUpdate       = this.props.onUpdate;
+
+    const onUpdateClick = function(e){
+      const inputLower = me && me.inputLower && me.inputLower.value;
+      const inputUpper = me && me.inputUpper && me.inputUpper.value;
+      onUpdate(inputLower, inputUpper);
+    };
+
+    const lower_bound = firstData && firstData.length && firstData[0                 ] && firstData[0                 ].value && firstData[0                 ].value[selectedIndex];
+    const upper_bound = firstData && firstData.length && firstData[firstData.length-1] && firstData[firstData.length-1].value && firstData[firstData.length-1].value[selectedIndex];
+
+    const registerLower = function(ref){ me.inputLower = ref; };
+    const registerUpper = function(ref){ me.inputUpper = ref; };
+
     return r.createElement(Col, { xs: 12 }, r.createElement(
-      "form", {}, r.createElement(
-        FormGroup, {}, [
+      "form", {}, r.createElement(Row, {}, [
+        r.createElement(Col, { key: 0, xs: 12 }, r.createElement(FormGroup, {}, [
           r.createElement(ControlLabel, { key: 0 }, "Select Index"),
           r.createElement(Select2,      { key: 1, data: indexNameArray, onSelect: onIndexSelect }),
-        ]
-      )
+        ])),
+        r.createElement(Col, { key: 1, xs: 12, sm: 6 }, r.createElement(FormGroup, {}, [
+          r.createElement(ControlLabel, { key: 0 }, "Lower Bound"),
+          r.createElement(FormControl,  { key: 1, type: "text", placeholder: lower_bound || "", inputRef: registerLower }),
+        ])),
+        r.createElement(Col, { key: 2, xs: 12, sm: 6 }, r.createElement(FormGroup, {}, [
+          r.createElement(ControlLabel, { key: 0 }, "Upper Bound"),
+          r.createElement(FormControl,  { key: 1, type: "text", placeholder: upper_bound || "", inputRef: registerUpper }),
+        ])),
+        r.createElement(Col, { key: 3, xs: 12        }, r.createElement(
+          Button, { bsStyle: "primary", type: "button", onClick: onUpdateClick }, "Update"
+        )),
+        r.createElement(Col, { key: 4, xs: 12, style: { visibility: "hidden" } }, "hw"),
+      ])
     ));
   },
 });
@@ -78,7 +110,8 @@ const IDBObjectStoreContent = crc({
   render: function(){
     const selectedIndex = this.props.selectedIndex || "";
     const firstData = this.props.firstData || [];
-    const data = firstData.map(function(row, index){
+    const rangeData = this.props.rangeData;
+    const data = (rangeData || firstData || []).map(function(row, index){
       const key = (row || {}).key;
       const primaryKey = (row || {}).primaryKey;
       const value = (row || {}).value;
@@ -98,7 +131,7 @@ const IDBObjectStoreContent = crc({
             IDBObjectStoreRowView,
             { data: data }
           ),
-          r.createElement(Col, { key: 0, xs: 12, xsHidden: true, smHidden: true, mdHidden: true, lgHidden: true }, r.createElement(Pager, {}, [
+          r.createElement(Col, { key: 0, xs: 12 }, r.createElement(Pager, {}, [
             r.createElement(Pager.Item, { key: 0, previous: true, href: "#", onClick: onPrevious }, "Previous"),
             r.createElement(Pager.Item, { key: 1, next    : true, href: "#", onClick: onNext     }, "Next"),
           ])),
@@ -107,6 +140,44 @@ const IDBObjectStoreContent = crc({
     );
   },
 });
+
+const getDataByRange = function(dbName, storeName, indexName, lowerBound, upperBound, resultConsumer){
+  (function(onOpen){
+    const request = indexedDB.open(dbName);
+    request.onsuccess = onOpen;
+    request.onerror   = onOpen;
+  })(function(event){
+    const target = event && event.target;
+    const result = target && target.result;
+    const transaction = result && result.transaction && result.transaction(storeName, "readonly");
+    const store = transaction && transaction.objectStore && transaction.objectStore(storeName);
+    const index = store && store.index && store.index(indexName);
+    const request = index && index.openCursor && (lowerBound || upperBound) && index.openCursor(
+      (lowerBound && upperBound && IDBKeyRange.bound(lowerBound, upperBound)) ||
+      (lowerBound && IDBKeyRange.lowerBound(lowerBound)) ||
+      (upperBound && IDBKeyRange.upperBound(upperBound))
+    );
+    const rows = [];
+    const got = function(){ resultConsumer(rows); };
+    request.onsuccess = function(cursorEvent){
+      const target = cursorEvent && cursorEvent.target;
+      const result = target && target.result;
+
+      const primaryKey = result && result.primaryKey;
+      const key        = result && result.key;
+      const value      = result && result.value;
+
+      const cont = function(){ result.continue() };
+      const f = result && result.continue && cont || got;
+      const pushed = result && primaryKey && key && value && rows.push({
+        primaryKey: primaryKey,
+        key: key,
+        value: value,
+      });
+      f();
+    };
+  });
+};
 
 const IDBObjectStoreViewer = crc({
   componentDidMount: function(){
@@ -155,6 +226,7 @@ const IDBObjectStoreViewer = crc({
 
     const indexNames     = (this.state || {}).indexNames;
     const firstData      = (this.state || {}).firstData;
+    const rangeData      = (this.state || {}).rangeData;
 
     const indexNameArray = dsl2array(indexNames) || [];
 
@@ -170,6 +242,12 @@ const IDBObjectStoreViewer = crc({
       me.setState({selectedIndex: value});
     };
 
+    const onUpdate = function(inputLower, inputUpper){
+      getDataByRange(dbname, storeName, selectedIndex, inputLower-0, inputUpper-0, function(rows){
+        me.setState({rangeData: rows});
+      });
+    };
+
     return r.createElement(Col, { xs: 12 }, r.createElement(
       Panel,
       { defaultExpanded: false },
@@ -183,11 +261,15 @@ const IDBObjectStoreViewer = crc({
               key: 0,
               indexNameArray: indexNameArray,
               onIndexSelect:  onIndexSelect,
+              firstData: firstData,
+              selectedIndex: selectedIndex,
+              onUpdate: onUpdate,
             }),
             r.createElement(IDBObjectStoreContent, {
               key: 1,
               selectedIndex: selectedIndex,
               firstData: firstData,
+              rangeData: rangeData,
             }),
           ])
         )),
